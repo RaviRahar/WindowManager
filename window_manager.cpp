@@ -28,6 +28,7 @@ class WindowManager{
     void OnCreateNotify(const XCreateWindowEvent& e);
     void OnDestroyNotify(const XDestroyWindowEvent& e);
     void OnReparentNotify(const XReparentEvent& e);
+    void OnConfigureRequest(const XConfigureRequestEvent& e);
 };
 
 
@@ -80,6 +81,9 @@ void WindowManager::Run(){
       case ReparentNotify:
         OnReparentNotify(e.xreparent);
         break;
+      case ConfigureRequest:
+        OnConfigureRequest(e.xconfigurerequest);
+        break;
       default:
         LOG(WARNING) << "Ignored event";
     }
@@ -99,3 +103,18 @@ int WindowManager::OnXError(Display* display, XErrorEvent* e) {return 0;}
 void WindowManager::OnCreateNotify(const XCreateWindowEvent& e) {}
 void WindowManager::OnDestroyNotify(const XDestroyWindowEvent& e) {}
 void WindowManager::OnReparentNotify(const XReparentEvent& e) {}
+
+void WindowManager::OnConfigureRequest(const XConfigureRequestEvent &e){
+  // Window is still unmapped, Granting requests without modification (?)
+  XWindowChanges changes;
+  changes.x = e.x;
+  changes.y = e.y;
+  changes.width = e.width;
+  changes.height = e.height;
+  changes.border_width = e.border_width;
+  changes.sibling = e.above;
+  changes.stack_mode = e.detail;
+
+  XConfigureWindow(_display, e.window, e.value_mask, &changes);
+
+}
